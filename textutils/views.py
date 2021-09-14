@@ -8,15 +8,13 @@ def index(request):
 
 def analyze(request):
     #Get the text
-    djtext = request.GET.get('text',"Default")
-    removepunc = request.GET.get('removepunc','off')
-    allcaps = request.GET.get('allcaps','off')
-    removenewlines = request.GET.get('removenewlines','off')
-    extraspaceremover = request.GET.get('extraspaceremover','off')
-    charcount = request.GET.get('charcount','off')
+    djtext = request.POST.get('text',"Default")
+    removepunc = request.POST.get('removepunc','off')
+    allcaps = request.POST.get('allcaps','off')
+    removenewlines = request.POST.get('removenewlines','off')
+    extraspaceremover = request.POST.get('extraspaceremover','off')
+    charcount = request.POST.get('charcount','off')
 
-
-   
     #Analyze the text
     if removepunc == 'on':
         punctuations ='''!()-[]{};:'"\,<>./?@#$%^&*_~'''
@@ -25,13 +23,14 @@ def analyze(request):
             if char not in punctuations:
                 analyzed = analyzed+char
         params = {'purpose':'Remove Punctuations','analyzed_text':analyzed}
-        return render(request,'analyze.html',params)
+        djtext = analyzed
+        
     elif allcaps == 'on':
         analyzed = ""
         for char in djtext:
             analyzed = analyzed+char.upper()
         params = {'purpose':'UPPERCASE','analyzed_text':analyzed}
-        return render(request,'analyze.html',params)
+        djtext = analyzed
 
     elif extraspaceremover == 'on':
         analyzed = ""
@@ -39,24 +38,26 @@ def analyze(request):
             if not(djtext[index] == " "  and  djtext[index+1]==" "):
                 analyzed = analyzed + char
         params = {'purpose':'Extra Space Remover','analyzed_text':analyzed}
-        return render(request,'analyze.html',params)
+        djtext = analyzed
 
         
     elif removenewlines =='on':
         analyzed = ""
         for char in djtext:
-            if char != '\n':
+            if char != '\n' and char != "\r":
                 analyzed = analyzed+char
         params = {'purpose':'Remove NewLines','analyzed_text':analyzed}
-        return render(request,'analyze.html',params)
+        djtext = analyzed
     elif charcount == 'on':
         count=0
         for char in djtext:
             count = count +1
         analyzed = 'The number of character is '+str(count)
         params = {'purpose':'Characters Counts','analyzed_text':analyzed}
-        return render(request,'analyze.html',params)
+        djtext=analyzed
         
     
-    else:
-        return HttpResponse("Error")
+    if (charcount != 'on' and removenewlines !="on" and extraspaceremover !="on" and allcaps !="on" and removepunc != "on"):
+        return HttpResponse("Please select any operation")
+    
+    return render(request,'analyze.html',params)
